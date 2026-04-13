@@ -1,4 +1,7 @@
 from enum import Enum
+from inline_markdown import *
+from htmlnode import *
+from textnode import *
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -35,3 +38,51 @@ def block_to_block_type(markdown):
 
     # 🔹 DEFAULT
     return BlockType.PARAGRAPH
+
+def text_to_children(text):
+    new_list = []
+    nodes = text_to_textnodes(text)
+    for node in nodes:
+        new_list.append(text_node_to_html_node(node))
+    return new_list
+
+def markdown_to_html_node(markdown):
+    md_blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in md_blocks:
+        blocktype = block_to_block_type(block)
+        if blocktype == BlockType.PARAGRAPH:
+            lines = block.split("\n")
+            stripped_lines = [line.strip() for line in lines]
+            paragraph = " ".join(stripped_lines)
+            children.append(ParentNode("p", text_to_children(paragraph)))
+        if blocktype == BlockType.HEADING:
+            heading_lvl=block.split(" ",1)
+            level = len(heading_lvl[0])
+            children.append(ParentNode(f"h{level}", text_to_children(heading_lvl[1])))     
+        if blocktype == BlockType.QUOTE:
+            lines = block.split("\n")
+            new_lines = []
+            for line in lines:
+                new_lines.append(line.lstrip(">").strip())
+            final = " ".join(new_lines)    
+            children.append(ParentNode("blockquote", text_to_children(final)))
+        if blocktype == BlockType.UNORDERED_LIST:
+            items = block.split("\n")
+            li_list = []
+            for item in items:
+                it = item[2:]
+                li_list.append(ParentNode("li",text_to_children(it)))
+            children.append(ParentNode("ul",li_list))
+        if blocktype == BlockType.ORDERED_LIST:
+            items = block.split("\n")
+            li_list = []
+            for item in items:
+                itt = item.find(". ")
+                it = item[itt + 2:]
+                li_list.append(ParentNode("li",text_to_children(it)))
+            children.append(ParentNode("ol",li_list))
+        if blocktype == BlockType.CODE:
+            text = block[4:-3]
+            children.append(ParentNode("pre",[ParentNode("code",[text_node_to_html_node(TextNode(text,TextType.TEXT))])]))
+    return ParentNode("div", children)
