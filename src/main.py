@@ -1,7 +1,7 @@
 from textnode import TextNode, TextType
 import os, shutil
 from gencontent import *
-
+import sys
 
 def copy_destination(src,dst):
     if os.path.exists(dst):
@@ -24,8 +24,12 @@ def recursive_copy(src,dst):
             recursive_copy(src_path, dst_path)
     
 def main():
-    copy_destination("static","public")
-    generate_page_recursive("content", "template.html", "public")
+    if len(sys.argv)>1:
+        basepath = sys.argv
+    else:
+        basepath = "/"
+    copy_destination("static","docs")
+    generate_page_recursive(basepath,"content", "template.html", "docs")
     
 
 if __name__ == "__main__":
