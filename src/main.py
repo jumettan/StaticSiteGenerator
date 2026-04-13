@@ -25,7 +25,7 @@ def recursive_copy(src,dst):
     
 def main():
     if len(sys.argv)>1:
-        basepath = sys.argv
+        basepath = sys.argv[1]
     else:
         basepath = "/"
     copy_destination("static","docs")
